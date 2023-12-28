@@ -1,15 +1,13 @@
 import os
 import logging
 
-logging.basicConfig(
-    format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO
-)
+logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-DB_NAME = os.getenv("DB_NAME", 'movies_database')
-DB_USER = os.getenv("DB_USER", 'app')
-DB_PASS = os.getenv("DB_PASS", 'pass')
-DB_HOST = os.getenv("DB_HOST", '127.0.0.1')
+DB_NAME = os.getenv("DB_NAME", "movies_database")
+DB_USER = os.getenv("DB_USER", "app")
+DB_PASS = os.getenv("DB_PASS", "pass")
+DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT = os.getenv("DB_PORT", 5432)
 DB_OPTS = "-c search_path=public,content"
 

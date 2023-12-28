@@ -1,5 +1,4 @@
 def agregate(records: list) -> list:
-
     bulk = []
     current_fw_id = ""
     current_g_name = ""
@@ -36,7 +35,7 @@ def agregate(records: list) -> list:
                         "writers": [],
                         "writers_names": [],
                         "genre": [],
-                    }
+                    },
                 }
             )
             current_fw_id = fw_id

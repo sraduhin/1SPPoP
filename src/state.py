@@ -4,9 +4,7 @@ import orjson
 from redis import Redis
 
 
-
 class RedisStorage:
-
     def __init__(self, redis: Redis):
         self.redis = redis
 
@@ -18,6 +16,9 @@ class RedisStorage:
 
     def save_state(self, key, new_value):
         self.redis.set(key, orjson.dumps(new_value))
+
+    def flash_state(self):
+        self.redis.flushdb()
 
 
 class State:
@@ -31,3 +32,7 @@ class State:
 
     def set_state(self, new_value):
         self.storage.save_state(self.key, new_value)
+
+    @classmethod
+    def set_default(cls):
+        cls.storage.flash_state()

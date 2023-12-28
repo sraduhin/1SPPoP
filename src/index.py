@@ -1,7 +1,8 @@
+from elasticsearch import Elasticsearch
+
 from core import config
 from core.elastic import MAPPING_SCHEME
-from core.config import logger
-from elasticsearch import Elasticsearch
+from state import State
 
 
 class Index:
@@ -16,7 +17,7 @@ class Index:
             if force:
                 self._delete()
         client.indices.create(index=self.index_name, **self.mapping)
-        # State.set_default()
+        State.set_default()
 
     def _delete(self):
         self.client.indices.delete(index=self.index_name)
