@@ -1,3 +1,4 @@
+from core.config import logger
 from etl import load, transform, extract
 
 
@@ -13,3 +14,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    logger.info("All changes has been updated. ;)")
+
