@@ -21,11 +21,13 @@ DB_CONNECT = {
 }
 
 REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")
-REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
 
 ELASTIC_HOST = os.getenv("ELASTIC_HOST", "127.0.0.1")
 ELASTIC_PORT = int(os.getenv("ELASTIC_PORT", 9200))
 ELASTIC_CONNECT = f"http://{ELASTIC_HOST}:{ELASTIC_PORT}"
 
-
+CELERY_BROKER_URL = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
+CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 3600}
+CELERY_RESULT_BACKEND = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
