@@ -4,7 +4,12 @@
 ## Contains
 * elasticsearch
 * docker
+* celery
 
 
-run
-``` later bro ```
+## Setup
+Setup and run [data source container](https://github.com/sraduhin/1SPPoP-django)
+Create .env according .env.example
+
+## run ETL
+docker compose up -d --build

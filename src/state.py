@@ -3,6 +3,8 @@ from typing import Optional
 import orjson
 from redis import Redis
 
+from core import config
+
 
 class RedisStorage:
     def __init__(self, redis: Redis):
@@ -22,7 +24,9 @@ class RedisStorage:
 
 
 class State:
-    storage = RedisStorage(redis=Redis())
+    host = config.REDIS_HOST
+    port = config.REDIS_PORT
+    storage = RedisStorage(redis=Redis(host=host, port=port))
 
     def __init__(self, key):
         self.key = key

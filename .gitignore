@@ -4,3 +4,8 @@ __pycache__/
 .env
 commands.txt
 .DS_Store
+celerybeat-schedule.db
+celerybeat-schedule
+es_data/
+redis_data/
+

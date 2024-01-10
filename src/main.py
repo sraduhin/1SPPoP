@@ -1,5 +1,6 @@
 from core.config import logger
 from etl import load, transform, extract
+from index import build_index
 
 
 def main():
