@@ -54,4 +54,3 @@ networks:
   sharednetwork:
     external: true
     name: 1SPPoP-network
-
