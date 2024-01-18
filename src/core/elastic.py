@@ -1,5 +1,4 @@
-MAPPING_SCHEME = {
-    "settings": {
+MAPPING_SETTINGS = {
         "refresh_interval": "1s",
         "analysis": {
             "filter": {
@@ -26,7 +25,10 @@ MAPPING_SCHEME = {
                 }
             },
         },
-    },
+    }
+
+FILMWORK_MAPPING_SCHEME = {
+    "settings": MAPPING_SETTINGS,
     "mappings": {
         "dynamic": "strict",
         "properties": {
@@ -58,6 +60,37 @@ MAPPING_SCHEME = {
                     "name": {"type": "text", "analyzer": "ru_en"},
                 },
             },
+        },
+    },
+}
+
+GENRE_MAPPING_SCHEME = {
+    "settings": MAPPING_SETTINGS,
+    "mappings": {
+        "dynamic": "strict",
+        "properties": {
+            "id": {"type": "keyword"},
+            "title": {
+                "type": "text",
+                "analyzer": "ru_en",
+                "fields": {"raw": {"type": "keyword"}},
+            },
+            "description": {"type": "text", "analyzer": "ru_en"},
+        },
+    },
+}
+
+PERSON_MAPPING_SCHEME = {
+    "settings": MAPPING_SETTINGS,
+    "mappings": {
+        "dynamic": "strict",
+        "properties": {
+            "id": {"type": "keyword"},
+            "name": {
+                "type": "text",
+                "fields": {"raw": {"type": "keyword"}},
+            },
+            "male": {"type": "keyword"},
         },
     },
 }

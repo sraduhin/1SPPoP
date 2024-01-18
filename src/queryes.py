@@ -5,25 +5,25 @@ FILMWORKS = (
     "ORDER BY modified;"
 )
 
-FILMWORKS_ALL = "SELECT id, modified " "FROM content.film_work " "ORDER BY modified;"
+FILMWORKS_ALL = "SELECT id, modified FROM content.film_work ORDER BY modified;"
 
 GENRES = (
-    "SELECT id, modified "
+    "SELECT id, name, description, modified "
     "FROM content.genre "
     "WHERE modified > %s "
     "ORDER BY modified;"
 )
 
-GENRES_ALL = "SELECT id, modified " "FROM content.genre " "ORDER BY modified;"
+GENRES_ALL = "SELECT id, modified FROM content.genre ORDER BY modified;"
 
 PERSONS = (
-    "SELECT id, modified "
+    "SELECT id, full_name, gender, modified "
     "FROM content.person "
     "WHERE modified > %s "
     "ORDER BY modified;"
 )
 
-PERSONS_ALL = "SELECT id, modified " "FROM content.person " "ORDER BY modified;"
+PERSONS_ALL = "SELECT id, modified FROM content.person ORDER BY modified;"
 
 FILMWORKS_BY_P = (
     "SELECT fw.id, fw.modified "

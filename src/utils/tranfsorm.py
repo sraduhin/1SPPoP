@@ -1,7 +1,7 @@
 from core import config
 
 
-def agregate(records: list) -> list:
+def agregate_films(records: list, index="movies") -> list:
     bulk = []
     current_fw_id = ""
     current_g_name = ""
@@ -24,7 +24,7 @@ def agregate(records: list) -> list:
         else:
             bulk.append(
                 {
-                    "_index": config.ELASTIC_INDEX_NAME,
+                    "_index": index,
                     "_op_type": "index",
                     "_id": fw_id,
                     "_source": {

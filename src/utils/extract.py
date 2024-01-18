@@ -1,90 +1,127 @@
 import psycopg2
 import queryes
 
-from typing import Generator
+from typing import Generator, List
 from psycopg2.extras import DictCursor
 
 from core.config import logger
-from schemas import ModelNames
+from config import Models, ExtractorConfig
+from state import State
+from core.config import DB_CONNECT
 
 
-class FilmworkExtractor:
-    CHUNK_SIZE = 1000
-    model = ModelNames.FILMWORK
+class BaseExtractor:
+    CHUNK_SIZE = 100
 
-    def __init__(self, connect: psycopg2.connect, state):
-        self.connect = connect
-        self.state = state
+    def __init__(self, **kwargs):
+        model = kwargs.get("model")
+        submodel = kwargs.get("submodel", None)
+        self.config = ExtractorConfig(model=model, submodel=submodel)
+        self.state = State(self.config.state)
 
     def _sql(self, current_state):
-        return queryes.FILMWORKS if current_state else queryes.FILMWORKS_ALL
-
-    def _send(self, objects: list, batch: Generator):
-        id_list = [obj[0] for obj in objects]
-        with self.connect.cursor(cursor_factory=DictCursor) as inner_cursor:
-            inner_cursor.execute(queryes.MISSING_DATA, (tuple(id_list),))
-            data = inner_cursor.fetchall()
-        batch.send(data)
+        # returns sql with 0) 'modified' or 1) all
+        return self.config.queries[0] if current_state else self.config.queries[1]
 
     def _log_this(self, num: int):
-        logger.info(f"Found {num} new {self.model}s. Updating...")
+        logger.info(f"Handled {num} new {self.config.model}s. Checking index...")
 
-    def pipe(self, batch: Generator):
+    def pipe(
+            self, batch: Generator, connect: psycopg2.connect
+    ):
         current_state = self.state.get_state()
-        with self.connect.cursor(cursor_factory=DictCursor) as cursor:
+        with connect.cursor(cursor_factory=DictCursor) as cursor:
             cursor.execute(self._sql(current_state), (current_state,))
             objects = cursor.fetchmany(self.CHUNK_SIZE)
             while objects:
                 self._log_this(len(objects))
-                self._send(objects, batch)
+                batch.send(objects)
 
-                new_state = objects[-1][1]  # modified
+                new_state = objects[-1][-1]  # modified
                 self.state.set_state(new_state)
 
                 objects = cursor.fetchmany(self.CHUNK_SIZE)
 
 
-class FilmworkExtractorByPerson(FilmworkExtractor):
-    model = ModelNames.PERSON
+class FWExtractor(BaseExtractor):
 
-    def _sql(self, current_state):
-        return queryes.PERSONS if current_state else queryes.PERSONS_ALL
+    def _get_relevant_date(self, objects: list, connect: psycopg2.connect):
+        id_list = [_[0] for _ in objects]
+        with connect.cursor(cursor_factory=DictCursor) as inner_cursor:
+            inner_cursor.execute(queryes.MISSING_DATA, (tuple(id_list),))
+            return inner_cursor.fetchall()
 
-    def _sql_films(self):
-        return queryes.FILMWORKS_BY_P
-
-    def pipe(self, batch: Generator):
+    def pipe(
+            self, batch: Generator, connect: psycopg2.connect
+    ):
         current_state = self.state.get_state()
-        with self.connect.cursor(cursor_factory=DictCursor) as cursor:
-            cursor.execute(self._sql(current_state), (current_state,))  # get persons
+        with connect.cursor(cursor_factory=DictCursor) as cursor:
+            cursor.execute(self._sql(current_state), (current_state,))
             objects = cursor.fetchmany(self.CHUNK_SIZE)
             while objects:
                 self._log_this(len(objects))
+                data = self._get_relevant_date(objects, connect)
 
-                ids = [object[0] for object in objects]
+                batch.send(data)
 
-                with self.connect.cursor(cursor_factory=DictCursor) as inner_cursor:
-                    # works with tuple, not a list. Don't ask why
-                    inner_cursor.execute(  # get films by changed persons
-                        self._sql_films(), (tuple(ids),)
-                    )
-                    inner_objects = inner_cursor.fetchmany(self.CHUNK_SIZE)
-
-                    while inner_objects:
-                        self._send(inner_objects, batch)
-                        inner_objects = inner_cursor.fetchmany(self.CHUNK_SIZE)
-
-                new_state = objects[-1][1]  # modified
+                new_state = objects[-1][-1]  # modified
                 self.state.set_state(new_state)
 
                 objects = cursor.fetchmany(self.CHUNK_SIZE)
 
 
-class FilmworkExtractorByGenre(FilmworkExtractorByPerson):
-    model = ModelNames.GENRE
+class FWEXtractorBy(FWExtractor):
 
-    def _sql(self, current_state):
-        return queryes.GENRES if current_state else queryes.GENRES_ALL
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
-    def _sql_films(self):
-        return queryes.FILMWORKS_BY_G
+    def _extra_sql(self):
+        return self.config.extra_query
+
+    def _log_that(self, num: int):
+        logger.info(f"Handled {num} new {self.config.submodel}s. Passing through...")
+
+    def _get_intermediate_data(self, objects: list, connect: psycopg2.connect):
+        id_list = [_[0] for _ in objects]
+        with connect.cursor(cursor_factory=DictCursor) as inner_cursor:
+            inner_cursor.execute(self._extra_sql(), (tuple(id_list),))  # get films
+            return inner_cursor.fetchmany(self.CHUNK_SIZE)
+
+    def pipe(self, batch: Generator, connect):
+        current_state = self.state.get_state()
+        with connect.cursor(cursor_factory=DictCursor) as cursor:
+            cursor.execute(self._sql(current_state), (current_state,))  # get submodel
+            objects = cursor.fetchmany(self.CHUNK_SIZE)
+            while objects:
+                self._log_that(len(objects))
+
+                id_list = [_[0] for _ in objects]
+                with connect.cursor(cursor_factory=DictCursor) as inner_cursor:
+                    inner_cursor.execute(self._extra_sql(), (tuple(id_list),))
+                    im_data = inner_cursor.fetchmany(self.CHUNK_SIZE)
+                    while im_data:
+                        self._log_this(len(im_data))
+                        data = self._get_relevant_date(objects, connect)
+                        if data:
+                            batch.send(data)
+                        im_data = inner_cursor.fetchmany(self.CHUNK_SIZE)
+
+                new_state = objects[-1][-1]  # modified
+                self.state.set_state(new_state)
+
+                objects = cursor.fetchmany(self.CHUNK_SIZE)
+
+
+class CombinedExtractor:
+
+    def __init__(self, **kwargs):
+        model = kwargs.get("model")
+        self.config = ExtractorConfig(model=model)
+        self.fw_extractor = FWExtractor(model=model)
+        self.fwg_extractor = FWEXtractorBy(model=model, submodel=Models.GENRE)
+        self.fwp_extractor = FWEXtractorBy(model=model, submodel=Models.PERSON)
+
+    def pipe(self, batch, connect: psycopg2.connect):
+        self.fw_extractor.pipe(batch, connect)
+        self.fwg_extractor.pipe(batch, connect)
+        self.fwp_extractor.pipe(batch, connect)

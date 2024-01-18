@@ -28,7 +28,6 @@ REDIS_PORT = os.getenv("REDIS_PORT", "6379")
 ELASTIC_HOST = os.getenv("ELASTIC_HOST", "127.0.0.1")
 ELASTIC_PORT = os.getenv("ELASTIC_PORT", "9200")
 ELASTIC_CONNECT = "http://" + ELASTIC_HOST + ":" + ELASTIC_PORT
-ELASTIC_INDEX_NAME = os.getenv("ELASTIC_INDEX_NAME", "movies")
 
 CELERY_BROKER_URL = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
 CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 3600}
