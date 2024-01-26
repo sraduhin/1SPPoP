@@ -36,4 +36,4 @@ class State:
     @staticmethod
     def _read_state():
         with open(settings.SEARCH_STATE_FILEPATH, "r") as f:
-            return json.load(f)
+            return json._load(f)

@@ -1,4 +1,5 @@
-FILMWORKS = (
+# filmwork's queries
+FILMWORKS_BY_MODIFIED = (
     "SELECT id, modified "
     "FROM content.film_work "
     "WHERE modified > %s "
@@ -6,24 +7,6 @@ FILMWORKS = (
 )
 
 FILMWORKS_ALL = "SELECT id, modified FROM content.film_work ORDER BY modified;"
-
-GENRES = (
-    "SELECT id, name, description, modified "
-    "FROM content.genre "
-    "WHERE modified > %s "
-    "ORDER BY modified;"
-)
-
-GENRES_ALL = "SELECT id, modified FROM content.genre ORDER BY modified;"
-
-PERSONS = (
-    "SELECT id, full_name, gender, modified "
-    "FROM content.person "
-    "WHERE modified > %s "
-    "ORDER BY modified;"
-)
-
-PERSONS_ALL = "SELECT id, modified FROM content.person ORDER BY modified;"
 
 FILMWORKS_BY_P = (
     "SELECT fw.id, fw.modified "
@@ -43,7 +26,8 @@ FILMWORKS_BY_G = (
     "ORDER BY fw.modified;"
 )
 
-MISSING_DATA = (
+
+FILMWORK_MISSING_DATA = (
     "SELECT fw.id as fw_id, "
     "fw.title, "
     "fw.description, "
@@ -65,3 +49,31 @@ MISSING_DATA = (
     "WHERE fw.id IN %s "
     "ORDER BY fw.modified, g.name, p.id;"
 )
+
+# genres
+GENRES_BY_MODIFIED = (
+    "SELECT id, modified "
+    "FROM content.genre "
+    "WHERE modified > %s "
+    "ORDER BY modified;"
+)
+
+GENRES_ALL = "SELECT id, modified FROM content.genre ORDER BY modified;"
+
+GENRES_MISSING_DATA = (
+    "SELECT id, name, description FROM content.genre WHERE id in %s ORDER BY modified"
+)
+
+#persons
+PERSONS_BY_MODIFIED = (
+    "SELECT id, modified "
+    "FROM content.person "
+    "WHERE modified > %s "
+    "ORDER BY modified;"
+)
+
+PERSONS_MISSING_DATA = (
+    "SELECT id, full_name, gender FROM content.person WHERE id in %s"
+)
+
+PERSONS_ALL = "SELECT id, modified FROM content.person ORDER BY modified;"
